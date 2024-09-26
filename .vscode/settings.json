@@ -1,0 +1,10 @@
+{
+    "makefile.configureOnOpen": true,
+    "makefile.launchConfigurations": [
+        {
+            "cwd": "/Users/arya/college_work/ece395/Lab2Part2Code",
+            "binaryPath": "/Users/arya/college_work/ece395/Lab2Part2Code/test",
+            "binaryArgs": []
+        }
+    ]
+}
