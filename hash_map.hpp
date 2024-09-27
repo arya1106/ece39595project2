@@ -70,24 +70,26 @@ template <typename K, typename V> void hash_map<K, V>::insert(K key, V value) {
 
   if (_size > _upper_load_factor * _capacity) {
     int new_cap = get_larger_capacity();
+    if (new_cap == -1) {
+      return;
+    }
     hash_list<K, V> *new_head = new hash_list<K, V>[new_cap];
     for (size_t i = 0; i < _capacity; i++) {
       hash_list<K, V> curr_list = _head[i];
       curr_list.reset_iter();
-      while (curr_list.get_iter_value().has_value()) {
+      while (!curr_list.iter_at_end()) {
 
         K key_to_move = *std::get<0>(curr_list.get_iter_value().value());
         V value_to_move = *std::get<1>(curr_list.get_iter_value().value());
         size_t new_hash = _hash(key_to_move) % new_cap;
-        hash_list<K, V> new_hash_list = new_head[new_hash];
-        new_hash_list.insert(key_to_move, value_to_move);
+        new_head[new_hash].insert(key_to_move, value_to_move);
 
         curr_list.increment_iter();
       }
     }
+    delete[] _head;
     _head = new_head;
     _capacity = new_cap;
-    // delete[] _head;
   }
 }
 
@@ -121,6 +123,31 @@ template <typename K, typename V> bool hash_map<K, V>::remove(K key) {
   size_t hash = _hash(key) % _capacity;
   bool res = _head[hash].remove(key);
   _size -= res;
+
+  if (_size < _lower_load_factor * _capacity) {
+    int new_cap = get_smaller_capacity();
+    if (new_cap == -1) {
+      return res;
+    }
+    hash_list<K, V> *new_head = new hash_list<K, V>[new_cap];
+    for (size_t i = 0; i < _capacity; i++) {
+      hash_list<K, V> curr_list = _head[i];
+      curr_list.reset_iter();
+      while (!curr_list.iter_at_end()) {
+
+        K key_to_move = *std::get<0>(curr_list.get_iter_value().value());
+        V value_to_move = *std::get<1>(curr_list.get_iter_value().value());
+        size_t new_hash = _hash(key_to_move) % new_cap;
+        new_head[new_hash].insert(key_to_move, value_to_move);
+
+        curr_list.increment_iter();
+      }
+    }
+    delete[] _head;
+    _capacity = new_cap;
+    _head = new_head;
+  }
+
   return res;
 }
 
@@ -149,7 +176,7 @@ template <typename K, typename V> size_t hash_map<K, V>::get_capacity() const {
  *  in the hash_map.
  */
 template <typename K, typename V> void hash_map<K, V>::get_all_keys(K *keys) {
-  int j = 0;
+  size_t j = 0;
   for (size_t i = 0; i < _capacity; i++) {
     _head[i].reset_iter();
     while (!(_head[i].iter_at_end())) {

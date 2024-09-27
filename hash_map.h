@@ -149,6 +149,9 @@ private:
   static size_t _capacities[];
 
   int get_larger_capacity() {
+    if (_capacity >= 2039) {
+      return -1;
+    }
     int i = 0;
     while (_capacity >= _capacities[i]) {
       i++;
@@ -157,6 +160,9 @@ private:
   }
 
   int get_smaller_capacity() {
+    if (_capacity <= 209) {
+      return -1;
+    }
     int i = 2;
     while (_capacity <= _capacities[i]) {
       i--;
